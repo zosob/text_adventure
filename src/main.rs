@@ -23,6 +23,13 @@ struct Room {
     items: Vec<Item>,
 }
 
+#[derive(Debug)]
+struct Enemy{
+    name: String,
+    health: i32,
+    attack_power: i32,
+}
+
 fn main() {
 
     let mut player = Player{
@@ -54,7 +61,7 @@ fn main() {
             ("east". to_string(), "treasure".to_string())
         ]),
         items:vec![Item::Key],
-        has_enemy: false,
+        has_enemy: true,
     });
 
     rooms.insert("treasure".to_string(), Room {
@@ -99,7 +106,19 @@ fn main() {
                         }
                     }
                     "help" => print_help(),
-                    "look" => println!("You see a dark room with a flickering torch."),
+                    "look" => { 
+                        let room = &rooms[&current_room];
+                        println!("{}", room.description);
+
+                        if room.has_enemy {
+                            let mut enemy = Enemy{
+                                name: "Goblin".to_string(),
+                                health: 40,
+                                attack_power: 10,
+                            };
+                            fight(&mut player, &mut enemy);
+                        }
+                    },
                     "quit" => {
                         println!("Thanks for playing!");
                         break;
@@ -120,4 +139,26 @@ fn print_help(){
     println!("go <direction> - Move to another room (e.g., 'go north')");
     println!("quit - Exit the game");
     println!("help - Show this help message");
+}
+
+fn fight(player: &mut Player, enemy: &mut Enemy){
+    println!("⚔️⚔️ A wild {} appears!", enemy.name);
+
+    while player.health > 0 && enemy.health> 0{
+        println!("You hit the {}!", enemy.name);
+        enemy.health -= 20;
+
+        if enemy.health <= 0 {
+            println!("You defeated the {}!", enemy.name);
+            break;
+        }
+
+        print!("The {} strikes back!", enemy.name);
+        player.health -= enemy.attack_power;
+        println!("Your health: {}", player.health);
+    }
+
+    if player.health <=0 {
+        println!("☠️☠️ You have been defeated...");
+    }
 }
