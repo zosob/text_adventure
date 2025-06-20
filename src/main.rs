@@ -8,7 +8,7 @@ struct Player{
     inventory: Vec<Item>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 enum Item{
     Potion, 
     Key,
@@ -46,7 +46,7 @@ fn main() {
     let mut current_room = "entrance".to_string();
 
     rooms.insert("entrance".to_string(), Room {
-        description: "You are at the entrace of a dark dungeion.".to_string(),
+        description: "You are at the entrance of a dark dungeon.".to_string(),
         exits: HashMap::from([
             ("north". to_string(), "hallway".to_string())
         ]),
@@ -97,12 +97,35 @@ fn main() {
                     }
                     "inventory" => {
                         if player.inventory.is_empty(){
-                            println!("Your inventoryt is empty!");
+                            println!("Your inventory is empty!");
                         } else {
                             println!("You have: ");
                             for item in &player.inventory{
                                 println!("{:?}", item);
                             }
+                        }
+                    }
+                    "take" => {
+                        let room = rooms.get_mut(&current_room).unwrap();
+
+                        if room.items.is_empty(){
+                            println!("there's nothing to take.");
+                        } else {
+                            println!("You pick up:");
+                            for item in &room.items{
+                                println!(" - {:?}", item);
+                                player.inventory.push(item.clone());
+                            }
+                            room.items.clear();
+                        }
+                    }
+                    "use potion" => {
+                        if let Some(pos) = player.inventory.iter().position(|i| matches!(i, Item::Potion)){
+                            player.health+=20;
+                            println!("You used a potion. Health: {}", player.health);
+                            player.inventory.remove(pos);
+                        } else {
+                            println!("You don't have any potions!");
                         }
                     }
                     "help" => print_help(),
@@ -133,12 +156,14 @@ fn main() {
 
 fn print_help(){
     
-    println!("Availble commands:");
+    println!("Available commands:");
     println!("look - Describe the current room");
     println!("inventory - Show your items");
     println!("go <direction> - Move to another room (e.g., 'go north')");
     println!("quit - Exit the game");
     println!("help - Show this help message");
+    println!("take - Pick up items in the room");
+    println!("use potion - Heals 20 health if you have one");
 }
 
 fn fight(player: &mut Player, enemy: &mut Enemy){
